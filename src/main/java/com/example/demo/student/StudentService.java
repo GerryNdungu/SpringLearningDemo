@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -44,12 +45,27 @@ public class StudentService {
     }
 
     @Transactional
-    public void updateStudent(Long studentId, Student student) {
-             checkStudentExists(studentId);
-             Student saved_student = studentRepository.findById(studentId).get();
-        saved_student.setName(student.getName());
-        saved_student.setEmail(student.getEmail());
+    public void updateStudent(Long studentId, String name, String email) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(()-> new IllegalStateException(
+                        "student with id " + studentId + " does not exist"
+                ));
 
-             studentRepository.save(saved_student);
+                if (name != null && name.length()>0 && !Objects.equals(student.getName(), name)){
+                    student.setName(name);
+                }
+                if (email != null && email.length()>0 && !Objects.equals(student.getEmail(), email)){
+                    Optional<Student> studentOptional = studentRepository.findStudentByEmail(email);
+                    if (studentOptional.isPresent()){
+                        throw new IllegalStateException("email taken");
+                    }
+                    student.setEmail(email);
+                }
+//             checkStudentExists(studentId);
+//             Student saved_student = studentRepository.findById(studentId).get();
+//        saved_student.setName(student.getName());
+//        saved_student.setEmail(student.getEmail());
+
+//             studentRepository.save(saved_student);
     }
 }
